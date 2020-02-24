@@ -6,12 +6,14 @@ pragma solidity  >=0.4.22 <0.7.0;
  
  contract Member{
      
-
     address payable poolAddress;
     uint rwfValue;
     
     mapping(address => uint256) public balances;
     
+    // Events allow clients to react to specific
+    // contract changes you declare
+    event Sent(address from, address to, uint amount);
     constructor(address payable _poolAddress) public {
         poolAddress = _poolAddress;
     }
@@ -23,18 +25,14 @@ pragma solidity  >=0.4.22 <0.7.0;
         poolAddress = _poolAddress;
     }
     
-    function payTo(address _memberAddress) public payable onlyOwner {
-         balances[msg.sender]++;
+    function pay(uint _amount) public payable onlyOwner {
+         require(_amount <= balances[msg.sender], "Insufficient balance.");
+         balances[msg.sender] -= _amount;
+         balances[poolAddress] += _amount;
          poolAddress.transfer(msg.value);
+         emit Sent(msg.sender, poolAddress, _amount);
          
      }
-     
-    // function send(address receiver, uint amount) public {
-    //     require(amount <= balances[msg.sender], "Insufficient balance.");
-    //     balances[msg.sender] -= amount;
-    //     balances[receiver] += amount;
-    //     emit Sent(msg.sender, receiver, amount);
-    // } 
      
      
      modifier onlyOwner(){
